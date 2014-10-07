@@ -4,6 +4,9 @@
 #include <QMainWindow>
 #include <QDir>
 #include <QFileDialog>
+#include <QMessageBox>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
 
 namespace Ui {
 class MainWindow;
@@ -31,6 +34,8 @@ private slots:
     void on__action_open_triggered();
     void on__action_save_triggered();
     void on__action_save_as_triggered();
+
+    void on__action_search_countours_triggered();
 
 private:
     Ui::MainWindow *_ui;

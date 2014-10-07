@@ -83,6 +83,7 @@
    </attribute>
    <addaction name="_action_open"/>
    <addaction name="_action_save"/>
+   <addaction name="_action_search_countours"/>
   </widget>
   <widget class="QStatusBar" name="_status_bar"/>
   <action name="_action_open">
@@ -128,6 +129,15 @@
    </property>
    <property name="text">
     <string>Выход</string>
+   </property>
+  </action>
+  <action name="_action_search_countours">
+   <property name="icon">
+    <iconset resource="res/res.qrc">
+     <normaloff>:/picture.png</normaloff>:/picture.png</iconset>
+   </property>
+   <property name="text">
+    <string>Определить контуры</string>
    </property>
   </action>
  </widget>

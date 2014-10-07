@@ -19,7 +19,8 @@ HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
 
-OTHER_FILES +=
+LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui
+
 
 RESOURCES += \
     res/res.qrc
