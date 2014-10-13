@@ -4,5 +4,6 @@
         <file>open.png</file>
         <file>picture.png</file>
         <file>save.png</file>
+        <file>settings.png</file>
     </qresource>
 </RCC>

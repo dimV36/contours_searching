@@ -15,13 +15,10 @@
   </property>
   <widget class="QWidget" name="_central_widget">
    <layout class="QGridLayout" name="_grid_layout">
-    <item row="0" column="0">
-     <widget class="QLabel" name="_label_before">
+    <item row="1" column="1">
+     <widget class="QLabel" name="_label_output">
       <property name="text">
-       <string>До обработки:</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       <string/>
       </property>
      </widget>
     </item>
@@ -35,6 +32,16 @@
       </property>
      </widget>
     </item>
+    <item row="0" column="0">
+     <widget class="QLabel" name="_label_before">
+      <property name="text">
+       <string>До обработки:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
+    </item>
     <item row="1" column="0">
      <widget class="QLabel" name="_label_input">
       <property name="text">
@@ -42,10 +49,10 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="1">
-     <widget class="QLabel" name="_label_output">
-      <property name="text">
-       <string/>
+    <item row="2" column="0" colspan="2">
+     <widget class="QSlider" name="_slider_threshold">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
       </property>
      </widget>
     </item>
