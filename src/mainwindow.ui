@@ -106,63 +106,23 @@
       <enum>QFormLayout::AllNonFixedFieldsGrow</enum>
      </property>
      <item row="2" column="0">
-      <widget class="QLabel" name="_label_scale">
+      <widget class="QLabel" name="_label_threshold">
        <property name="text">
-        <string>Фактор растяжения:</string>
+        <string>Пороговое значение</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QSpinBox" name="_spin_box_scale">
+      <widget class="QSpinBox" name="_spin_box_threshold">
        <property name="minimum">
         <number>1</number>
        </property>
        <property name="maximum">
-        <number>200</number>
+        <number>255</number>
        </property>
-      </widget>
-     </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="_label_delta">
-       <property name="text">
-        <string>Дельта</string>
+       <property name="value">
+        <number>100</number>
        </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QSpinBox" name="_spin_box_delta">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-       <property name="maximum">
-        <number>200</number>
-       </property>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="2">
-      <widget class="QGroupBox" name="_box_filter">
-       <property name="title">
-        <string>Использовать фильтр:</string>
-       </property>
-       <layout class="QHBoxLayout" name="_group_layout">
-        <item>
-         <widget class="QRadioButton" name="_button_sobel">
-          <property name="text">
-           <string>Фильтр Собеля</string>
-          </property>
-          <property name="checked">
-           <bool>true</bool>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QRadioButton" name="_button_shur">
-          <property name="text">
-           <string>Фильтр Шарра</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
       </widget>
      </item>
     </layout>
