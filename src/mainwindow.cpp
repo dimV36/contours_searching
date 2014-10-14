@@ -7,7 +7,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     _ui(new Ui::MainWindow) {
     _ui -> setupUi(this);
-    _threshold = 1;
+    _ui -> _dock_widget -> setHidden(true);
+    connect(_ui -> _spin_box_scale, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
+    connect(_ui -> _spin_box_delta, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
+    connect(_ui -> _button_shur, SIGNAL(clicked()), this, SLOT(slotUpdateOutputImage()));
+    connect(_ui -> _button_sobel, SIGNAL(clicked()), this, SLOT(slotUpdateOutputImage()));
+    connect(this, SIGNAL(signalInputImageWasLoaded()), this, SLOT(slotUpdateOutputImage()));
 }
 
 
@@ -22,10 +27,11 @@ void MainWindow::setFileNameOnTittle(const QString &file_name) {
 
 
 void MainWindow::setInputImage(const QString &file_name) {
-    _file_name = file_name;
     _input_image.load(file_name);
     QImage image  = _input_image.scaled(_input_image.size() / 5);
     _ui -> _label_input -> setPixmap(QPixmap::fromImage(image));
+    emit signalInputImageWasLoaded();
+    _ui -> _dock_widget -> setHidden(false);
 }
 
 
@@ -61,14 +67,12 @@ QImage MainWindow::cvMatToQImage(const Mat &matrix) {
     switch (matrix.type()) {
        // 8-bit, 4 channel
        case CV_8UC4: {
-          qDebug() << "rgb32";
           QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB32);
           return image;
        }
 
        // 8-bit, 3 channel
        case CV_8UC3: {
-          qDebug() << "rbt8888";
           QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB888 );
           return image.rgbSwapped();
        }
@@ -76,8 +80,6 @@ QImage MainWindow::cvMatToQImage(const Mat &matrix) {
        // 8-bit, 1 channel
        case CV_8UC1: {
           static QVector<QRgb>  color_table;
-          qDebug() << "indexed8";
-          // only create our color table once
           if (color_table.isEmpty()) {
              for (int i = 0; i < 256; i++)
                 color_table.push_back(qRgb(i, i, i));
@@ -88,17 +90,44 @@ QImage MainWindow::cvMatToQImage(const Mat &matrix) {
        }
 
        default:
-          qWarning() << "ASM::cvMatToQImage() - cv::Mat image type not handled in switch:" << matrix.type();
           break;
     }
     return QImage();
 }
 
 
-void MainWindow::updateOutputImage() {
-//    Mat input, copy, input_gray, detected_edges;
+Mat MainWindow::qimageTocvMat(const QImage &image, bool clone) {
+    switch (image.format()) {
+             // 8-bit, 4 channel
+             case QImage::Format_RGB32: {
+                Mat matrix(image.height(), image.width(), CV_8UC4, const_cast<uchar*>(image.bits()), image.bytesPerLine());
+                return (clone ? matrix.clone() : matrix);
+             }
+
+             // 8-bit, 3 channel
+             case QImage::Format_RGB888: {
+                QImage swapped = image.rgbSwapped();
+                return Mat(swapped.height(), swapped.width(), CV_8UC3, const_cast<uchar*>(swapped.bits()), swapped.bytesPerLine()).clone();
+             }
+
+             // 8-bit, 1 channel
+             case QImage::Format_Indexed8: {
+                Mat matrix(image.height(), image.width(), CV_8UC1, const_cast<uchar*>(image.bits()), image.bytesPerLine());
+                return (clone ? matrix.clone() : matrix);
+             }
+
+             default:
+                break;
+          }
+          return Mat();
+}
+
+
+void MainWindow::slotUpdateOutputImage() {
+    int scale = _ui -> _spin_box_scale -> value();
+    int delta = _ui -> _spin_box_delta -> value();
     int ddepth = CV_16S;
-    Mat input = imread(windowTitle().toStdString());
+    Mat input = qimageTocvMat(_input_image, true);
     if (NULL == input.data) {
         QMessageBox::critical(this, tr("Ошибка загрузки изображения"),
                               tr("Невозможно загрузить изображение из %1").arg(windowTitle()));
@@ -107,24 +136,21 @@ void MainWindow::updateOutputImage() {
     }
     GaussianBlur(input, input, Size(3, 3), 0, 0, BORDER_DEFAULT);
     Mat input_gray;
-    cvtColor(input, input_gray, CV_BGR2GRAY);
+    cvtColor(input, input_gray, CV_RGB2GRAY);
     Mat grad_x, grad_y;
     Mat abs_grad_x,abs_grad_y;
-    Sobel(input_gray, grad_x, 1, 0, 3, 1, 0, BORDER_DEFAULT);
+    if (_ui -> _button_shur -> isChecked()) {
+        Scharr(input_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT);
+        Scharr( input_gray, grad_y, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
+    }
+    if (_ui -> _button_sobel -> isChecked()) {
+        Sobel(input_gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT);
+        Sobel(input_gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT);
+    }
     convertScaleAbs(grad_x, abs_grad_x);
-    Sobel(input_gray, grad_y, ddepth, 0, 1, 3, 1, 0, BORDER_DEFAULT);
     convertScaleAbs(grad_y, abs_grad_y);
     Mat result;
     addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, result);
-//    copy.create(input.size(), input.type());
-//    cvtColor(input, input_gray, CV_BGR2GRAY);
-//    blur(input_gray, detected_edges, Size(3, 3));
-//    Canny(detected_edges, detected_edges, _threshold, _threshold * 3, 3);
-//    copy = Scalar::all(0);
-//    input.copyTo(copy, detected_edges);
-//    vector<int> jpeg_parametres;
-//    jpeg_parametres.push_back(CV_IMWRITE_JPEG_QUALITY);
-//    _output_image = cvMatToQImage(copy);
     _output_image = cvMatToQImage(result);
     QImage image = _output_image.scaled(_output_image.size() / 5);
     _ui -> _label_output -> setPixmap(QPixmap::fromImage(image));
@@ -162,11 +188,13 @@ void MainWindow::on__action_save_as_triggered() {
 
 
 void MainWindow::on__action_search_countours_triggered() {
-    updateOutputImage();
+//    updateOutputImage();
 }
 
 
-void MainWindow::on__slider_threshold_valueChanged(int value) {
-    _threshold = value;
-    updateOutputImage();
+
+
+void MainWindow::on__action_view_parametres_triggered() {
+    if (false == _input_image.isNull())
+        _ui -> _dock_widget -> setHidden(false);
 }

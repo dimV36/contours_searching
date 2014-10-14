@@ -25,12 +25,13 @@ public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
+
 private:
     void setFileNameOnTittle(const QString& file_name);
     void setInputImage(const QString& file_name);
     void updateButtons();
     QImage cvMatToQImage(const Mat &matrix);
-    void updateOutputImage();
+    Mat qimageTocvMat(const QImage &image, bool clone);
     bool saveAs();
     bool save(const QString& file_name);
 
@@ -39,13 +40,15 @@ private slots:
     void on__action_save_triggered();
     void on__action_save_as_triggered();
     void on__action_search_countours_triggered();
+    void slotUpdateOutputImage();
 
-    void on__slider_threshold_valueChanged(int value);
+    void on__action_view_parametres_triggered();
+
+signals:
+    void signalInputImageWasLoaded();
 
 private:
     Ui::MainWindow *_ui;
-    QString _file_name;
-    int _threshold;
 };
 
 #endif // MAINWINDOW_H
