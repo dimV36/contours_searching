@@ -13,9 +13,11 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    qopencv.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    qopencv.h
 
 FORMS    += mainwindow.ui
 

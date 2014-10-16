@@ -5,8 +5,10 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QMessageBox>
+#include <QPainter>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include "qopencv.h"
 
 namespace Ui {
 class MainWindow;
@@ -30,8 +32,6 @@ private:
     void setFileNameOnTittle(const QString& file_name);
     void setInputImage(const QString& file_name);
     void updateButtons();
-    QImage cvMatToQImage(const Mat &matrix);
-    Mat qimageTocvMat(const QImage &image, bool clone);
     bool saveAs();
     bool save(const QString& file_name);
 

@@ -8,12 +8,13 @@ MainWindow::MainWindow(QWidget *parent) :
     _ui(new Ui::MainWindow) {
     _ui -> setupUi(this);
     _ui -> _dock_widget -> setHidden(true);
+    connect(this, SIGNAL(signalInputImageWasLoaded()), this, SLOT(slotUpdateOutputImage()));
     connect(_ui -> _spin_box_threshold, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
+    connect(_ui -> _spin_box_min_object_size, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
 //    connect(_ui -> _spin_box_scale, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
 //    connect(_ui -> _spin_box_delta, SIGNAL(valueChanged(int)), this, SLOT(slotUpdateOutputImage()));
 //    connect(_ui -> _button_shur, SIGNAL(clicked()), this, SLOT(slotUpdateOutputImage()));
 //    connect(_ui -> _button_sobel, SIGNAL(clicked()), this, SLOT(slotUpdateOutputImage()));
-    connect(this, SIGNAL(signalInputImageWasLoaded()), this, SLOT(slotUpdateOutputImage()));
 }
 
 
@@ -31,8 +32,8 @@ void MainWindow::setInputImage(const QString &file_name) {
     _input_image.load(file_name);
     QImage image  = _input_image.scaled(_input_image.size() / 5);
     _ui -> _label_input -> setPixmap(QPixmap::fromImage(image));
-    emit signalInputImageWasLoaded();
     _ui -> _dock_widget -> setHidden(false);
+    emit signalInputImageWasLoaded();
 }
 
 
@@ -64,109 +65,85 @@ bool MainWindow::save(const QString &file_name) {
 }
 
 
-QImage MainWindow::cvMatToQImage(const Mat &matrix) {
-    switch (matrix.type()) {
-       // 8-bit, 4 channel
-       case CV_8UC4: {
-          QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB32);
-          return image;
-       }
-
-       // 8-bit, 3 channel
-       case CV_8UC3: {
-          QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB888 );
-          return image.rgbSwapped();
-       }
-
-       // 8-bit, 1 channel
-       case CV_8UC1: {
-          static QVector<QRgb>  color_table;
-          if (color_table.isEmpty()) {
-             for (int i = 0; i < 256; i++)
-                color_table.push_back(qRgb(i, i, i));
-          }
-          QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_Indexed8);
-          image.setColorTable(color_table);
-          return image;
-       }
-
-       default:
-          break;
-    }
-    return QImage();
-}
-
-
-Mat MainWindow::qimageTocvMat(const QImage &image, bool clone) {
-    switch (image.format()) {
-             // 8-bit, 4 channel
-             case QImage::Format_RGB32: {
-                Mat matrix(image.height(), image.width(), CV_8UC4, const_cast<uchar*>(image.bits()), image.bytesPerLine());
-                return (clone ? matrix.clone() : matrix);
-             }
-
-             // 8-bit, 3 channel
-             case QImage::Format_RGB888: {
-                QImage swapped = image.rgbSwapped();
-                return Mat(swapped.height(), swapped.width(), CV_8UC3, const_cast<uchar*>(swapped.bits()), swapped.bytesPerLine()).clone();
-             }
-
-             // 8-bit, 1 channel
-             case QImage::Format_Indexed8: {
-                Mat matrix(image.height(), image.width(), CV_8UC1, const_cast<uchar*>(image.bits()), image.bytesPerLine());
-                return (clone ? matrix.clone() : matrix);
-             }
-
-             default:
-                break;
-          }
-          return Mat();
-}
-
-
 void MainWindow::slotUpdateOutputImage() {
-    int threshold = _ui -> _spin_box_threshold -> value();
-    RNG rng(12345);
+    int thresh = _ui -> _spin_box_threshold -> value();
+    int min_size = _ui -> _spin_box_min_object_size -> value();
+
     Mat input = qimageTocvMat(_input_image, true);
     Mat input_gray;
-    vector<vector<Point> > contours;
-    vector<Vec4i> hierarchy;
     cvtColor(input, input_gray, CV_BGR2GRAY);
     blur(input_gray, input_gray, Size(3, 3));
-    Mat canny_output;
-    Canny(input_gray, canny_output, threshold, threshold * 2, 3);
-    findContours(canny_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-    Mat drawing = Mat::zeros(canny_output.size(), CV_8UC3);
-    for (int i = 0; i < contours.size(); i++) {
-         Scalar color = Scalar(rng.uniform(0, 255), rng.uniform(0, 255), rng.uniform(0,255));
-         drawContours(drawing, contours, i, color, 2, 8, hierarchy, 0, Point());
+    Mat threshold_output = Mat(input.size(), CV_8UC3);
+    vector<vector<Point> > contours;
+    vector<Vec4i> hierarchy;
+
+    qDebug() << (input.size() == input_gray.size());
+
+    /// Detect edges using Threshold
+    threshold(input_gray, threshold_output, thresh, 255, THRESH_BINARY);
+    /// Find contours
+    findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+    /// Find the rotated rectangles and ellipses for each contour
+    vector<RotatedRect> min_ellipse(contours.size());
+
+    for (unsigned i = 0; i < contours.size(); i++) {
+        if (contours[i].size() > (unsigned) min_size)
+            min_ellipse[i] = fitEllipse(Mat(contours[i]));
     }
-    _output_image = cvMatToQImage(drawing);
-    QImage image = _output_image.scaled(_output_image.size() / 5);
-    _ui -> _label_output -> setPixmap(QPixmap::fromImage(image));
-//    int scale = _ui -> _spin_box_scale -> value();
-//    int delta = _ui -> _spin_box_delta -> value();
-//    int ddepth = CV_16S;
-//    GaussianBlur(input, input, Size(3, 3), 0, 0, BORDER_DEFAULT);
-//    Mat input_gray;
-//    cvtColor(input, input_gray, CV_RGB2GRAY);
-//    Mat grad_x, grad_y;
-//    Mat abs_grad_x,abs_grad_y;
-//    if (_ui -> _button_shur -> isChecked()) {
-//        Scharr(input_gray, grad_x, ddepth, 1, 0, scale, delta, BORDER_DEFAULT);
-//        Scharr( input_gray, grad_y, ddepth, 1, 0, scale, delta, BORDER_DEFAULT );
-//    }
-//    if (_ui -> _button_sobel -> isChecked()) {
-//        Sobel(input_gray, grad_x, ddepth, 1, 0, 3, scale, delta, BORDER_DEFAULT);
-//        Sobel(input_gray, grad_y, ddepth, 0, 1, 3, scale, delta, BORDER_DEFAULT);
-//    }
-//    convertScaleAbs(grad_x, abs_grad_x);
-//    convertScaleAbs(grad_y, abs_grad_y);
-//    Mat result;
-//    addWeighted(abs_grad_x, 0.5, abs_grad_y, 0.5, 0, result);
-//    _output_image = cvMatToQImage(result);
-//    QImage image = _output_image.scaled(_output_image.size() / 5);
-//    _ui -> _label_output -> setPixmap(QPixmap::fromImage(image));
+
+    /// Draw ellipses
+    Mat drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
+    for (unsigned i = 0; i < contours.size(); i++) {
+        Scalar color = Scalar(0, 0, 255);
+        ellipse(drawing, min_ellipse[i], color, 2, 8);
+    }
+
+    Mat result;
+    addWeighted(input, 0.5, drawing, 0.5, 0, result);
+    _output_image = cvMatToQImage(result);
+
+    QImage output = _output_image.scaled(_output_image.size() / 5);
+    _ui -> _label_output -> setPixmap(QPixmap::fromImage(output));
+
+//    IplImage input_image = input;
+//    IplImage drawing_image = drawing;
+//    qDebug() << (input.size() == drawing.size() && (input.channels() == drawing.channels()));
+//    IplImage *result = NULL;
+
+//    cvSetImageROI(&input_image, cvRect(0, 0, drawing_image.width, drawing_image.height));
+//    AddWeighted(&input_image, 0.5, &drawing_image, 0.5, 0.0, result);
+
+//    cvSaveImage("mixed.jpg", result);
+//    cvResetImageROI(&input_image);
+//    cvReleaseImage(&result);
+//    IplImage *input_image = cvCreateImage(cvSize(input.cols, input.rows), IPL_DEPTH_8U, 1);
+//    input_image -> imageData = (char*) input.data;
+
+//    IplImage *drawing_image = cvCreateImage(cvSize(drawing.cols, drawing.rows), IPL_DEPTH_8U, 1);
+//    drawing_image -> imageData = (char*) drawing.data;
+
+//    IplImage *result_image = cvCloneImage(input_image);
+
+//    cvSetImageROI(input_image, cvRect(0, 0, drawing_image -> width, drawing_image -> height));
+//    cvAddWeighted(input_image, 0.5, drawing_image, 0.5, 0.0, result_image);
+//    cvResetImageROI(input_image);
+
+//    cvSave("test.jpg", result_image);
+//    cvMatToQImage(Mat(result_image, true)).save("/home/dimv36/output_q.jpg");
+
+//    cvReleaseImage(&input_image);
+//    cvReleaseImage(&result_image);
+
+
+//    _output_image = cvMatToQImage(output_matrix);
+
+////    _output_image = IplImageToQImage(result_image);
+//     QImage output = _output_image.scaled(_output_image.size() / 5);
+
+//////    QImage drawing_image = cvMatToQImage(drawing);
+////     output = drawing_image.scaled(drawing_image.size() / 5);
+//    _ui -> _label_output -> setPixmap(QPixmap::fromImage(output));
 }
 
 
