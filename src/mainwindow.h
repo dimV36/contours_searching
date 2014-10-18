@@ -22,6 +22,7 @@ class MainWindow : public QMainWindow {
 private:
     QImage _input_image;
     QImage _output_image;
+    QString _file_name;
 
 public:
     explicit MainWindow(QWidget *parent = 0);
@@ -29,7 +30,7 @@ public:
 
 
 private:
-    void setFileNameOnTittle(const QString& file_name);
+    void setFileNameOnTittle();
     void setInputImage(const QString& file_name);
     void updateButtons();
     bool saveAs();
@@ -39,10 +40,9 @@ private slots:
     void on__action_open_triggered();
     void on__action_save_triggered();
     void on__action_save_as_triggered();
-    void on__action_search_countours_triggered();
     void slotUpdateOutputImage();
-
     void on__action_view_parametres_triggered();
+    void on__action_exit_triggered();
 
 signals:
     void signalInputImageWasLoaded();

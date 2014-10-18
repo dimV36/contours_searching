@@ -15,6 +15,16 @@
   </property>
   <widget class="QWidget" name="_central_widget">
    <layout class="QGridLayout" name="_grid_layout">
+    <item row="0" column="1">
+     <widget class="QLabel" name="_label_after">
+      <property name="text">
+       <string>После обработки:</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QLabel" name="_label_before">
       <property name="text">
@@ -25,27 +35,17 @@
       </property>
      </widget>
     </item>
-    <item row="2" column="0">
-     <widget class="QLabel" name="_label_input">
-      <property name="text">
-       <string/>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="1">
+    <item row="1" column="1">
      <widget class="QLabel" name="_label_output">
       <property name="text">
        <string/>
       </property>
      </widget>
     </item>
-    <item row="0" column="1">
-     <widget class="QLabel" name="_label_after">
+    <item row="1" column="0">
+     <widget class="QLabel" name="_label_input">
       <property name="text">
-       <string>После обработки:</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+       <string/>
       </property>
      </widget>
     </item>
@@ -112,14 +112,14 @@
        </property>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="7" column="0">
       <widget class="QLabel" name="_label_min_object_size">
        <property name="text">
         <string>Минимальный размер объекта</string>
        </property>
       </widget>
      </item>
-     <item row="6" column="1">
+     <item row="7" column="1">
       <widget class="QSpinBox" name="_spin_box_min_object_size">
        <property name="minimum">
         <number>1</number>
@@ -141,7 +141,7 @@
         <bool>false</bool>
        </property>
        <property name="buttonSymbols">
-        <enum>QAbstractSpinBox::PlusMinus</enum>
+        <enum>QAbstractSpinBox::UpDownArrows</enum>
        </property>
        <property name="minimum">
         <number>1</number>
@@ -151,6 +151,23 @@
        </property>
        <property name="value">
         <number>100</number>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="0">
+      <widget class="QLabel" name="_label_max_object_size">
+       <property name="text">
+        <string>Максимальный размер объекта</string>
+       </property>
+      </widget>
+     </item>
+     <item row="8" column="1">
+      <widget class="QSpinBox" name="_spin_box_max_object_size">
+       <property name="minimum">
+        <number>2000</number>
+       </property>
+       <property name="maximum">
+        <number>10000</number>
        </property>
       </widget>
      </item>
@@ -213,7 +230,7 @@
   </action>
   <action name="_action_view_parametres">
    <property name="text">
-    <string>Показать параметры настройки</string>
+    <string>Показать параметры обработки</string>
    </property>
    <property name="toolTip">
     <string>Показать параметры обработки</string>
@@ -224,22 +241,5 @@
  <resources>
   <include location="res/res.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>_action_exit</sender>
-   <signal>triggered()</signal>
-   <receiver>MainWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>294</x>
-     <y>158</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

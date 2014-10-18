@@ -23,11 +23,15 @@ int mixImages(char *filename, char *filename2, char *output) {
     // освобождаем область интереса
     cvResetImageROI(image1);
 
-    cvSave('output.jpeg', output);
+    cvSave("output.jpeg", output);
 
     // освобождаем ресурсы
     cvReleaseImage( &image1 );
     cvReleaseImage( &image2 );
     cvReleaseImage( &result );
     return 0;
+}
+
+int main() {
+	mixImages("1.jpg", "2.jpg", "output.jpg");
 }

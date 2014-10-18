@@ -1,6 +1,5 @@
 #include "qopencv.h"
 
-
 QImage cvMatToQImage(const Mat &matrix) {
     switch (matrix.type()) {
        // 8-bit, 4 channel
@@ -11,7 +10,7 @@ QImage cvMatToQImage(const Mat &matrix) {
 
        // 8-bit, 3 channel
        case CV_8UC3: {
-          QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB888 );
+          QImage image(matrix.data, matrix.cols, matrix.rows, matrix.step, QImage::Format_RGB888);
           return image.rgbSwapped();
        }
 
@@ -60,3 +59,41 @@ Mat qimageTocvMat(const QImage &image, bool clone) {
           return Mat();
 }
 
+
+void mixImages(QString input_path1, QString input_path2, QString output_path) {
+    IplImage *image1 = cvLoadImage(input_path1.toStdString().c_str(), 1);
+    assert(image1 != 0);
+
+    IplImage *image2 = cvLoadImage(input_path2.toStdString().c_str(), 1);
+    assert(image2 != 0);
+
+    IplImage *output = cvCloneImage(image2);
+
+    // размер шаблона
+    int width = image2 -> width;
+    int height = image2 -> height;
+
+    // устанавливаем область интереса
+    cvSetImageROI(image1, cvRect(0, 0 , width, height));
+    // взвешенная сумма
+    cvAddWeighted(image1, 0.5, image2, 0.5, 0.0, output);
+    // освобождаем область интереса
+    cvResetImageROI(image1);
+
+    cvSaveImage(output_path.toStdString().c_str(), output);
+
+    // освобождаем ресурсы
+    cvReleaseImage(&image1);
+    cvReleaseImage(&image2);
+    cvReleaseImage(&output);
+}
+
+
+IplImage cvMatToIplImage(const Mat &matrix) {
+    return matrix.operator IplImage();
+}
+
+
+Mat iplImageToCvMat(const IplImage &image) {
+    return Mat(&image);
+}

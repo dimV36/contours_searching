@@ -10,4 +10,9 @@ using namespace cv;
 QImage cvMatToQImage(const Mat &matrix);
 Mat qimageTocvMat(const QImage &image, bool clone);
 
+IplImage cvMatToIplImage(const Mat &matrix);
+Mat iplImageToCvMat(const IplImage &image);
+
+void mixImages(const QString image_path1, const QString image_path2, const QString output_path);
+
 #endif // QOPENCV_H
