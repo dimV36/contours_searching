@@ -21,7 +21,18 @@ HEADERS  += mainwindow.h \
 
 FORMS    += mainwindow.ui
 
-LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui
+unix: {
+    LIBS += -L$$OUT_PWD/../lib -lopencv_core -lopencv_imgproc -lopencv_highgui
+    INCLUDEPATH += $$PWD/../include
+    DEPENDPATH += $$PWD/../include
+}
+
+#win: {
+
+#LIBS += -L$$OUT_PWD/../lib -lopencv_core -lopencv_imgproc -lopencv_highgui
+#INCLUDEPATH += $$PWD/../include
+#DEPENDPATH += $$PWD/../include
+#LIBS += -lopencv_core -lopencv_imgproc -lopencv_highgui
 
 
 RESOURCES += \

@@ -8,6 +8,7 @@
 #include <QPainter>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/highgui/highgui_c.h>
 #include "qopencv.h"
 
 namespace Ui {
@@ -15,6 +16,7 @@ class MainWindow;
 }
 
 using namespace cv;
+using namespace std;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
