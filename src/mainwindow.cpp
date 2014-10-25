@@ -115,19 +115,21 @@ void MainWindow::slotUpdateOutputImage() {
     findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
     /// Find the rotated rectangles and ellipses for each contour
-    vector<RotatedRect> min_ellipse(contours.size());
+    vector<RotatedRect> min_ellipse;
 
     for (unsigned i = 0; i < contours.size(); i++) {
         if ((contours[i].size() > (unsigned) min_size) && (contours[i].size() < (unsigned) max_size))
-            min_ellipse[i] = fitEllipse(Mat(contours[i]));
+            min_ellipse.push_back(fitEllipse(Mat(contours[i])));
     }
 
     /// Draw ellipses
     Mat drawing = Mat::zeros(threshold_output.size(), CV_8UC3);
-    for (unsigned i = 0; i < contours.size(); i++) {
+    for (unsigned i = 0; i < min_ellipse.size(); i++) {
+        RotatedRect current_ellipse = min_ellipse[i];
         Scalar color = Scalar(0, 0, 255);
-        ellipse(drawing, min_ellipse[i], color, 2, 8);
-        addText(drawing, "1", contours[i][0], cvFont(10.0));
+        ellipse(drawing, current_ellipse, color, 2, 8);
+        putText(drawing, QString::number(current_ellipse.boundingRect().area()).toStdString().c_str(), current_ellipse.center, FONT_HERSHEY_SIMPLEX, 0.5, Scalar(255, 255, 0));
+
     }
 
     cvMatToQImage(drawing).save(DRAWING);
